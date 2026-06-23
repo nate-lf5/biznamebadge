@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>명찰 자동 생성 시스템</title>
-<!-- 무료·상업적 사용 가능(OFL) 한글 웹폰트 -->
+<!-- 무료·상업적 사용 가능(OFL) 한글+영문 웹폰트 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gothic+A1:wght@400;700;800&family=Gowun+Dodum&family=Jua&family=Kirang+Haerang&family=Nanum+Gothic:wght@400;700;800&family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700;900&family=Noto+Serif+KR:wght@400;700;900&family=Song+Myung&display=swap" rel="stylesheet">
@@ -143,6 +143,7 @@
         <label class="fld">규격 선택
           <select id="cardPreset" style="width:240px">
             <option value="96x122" selected>기본 명찰 · 96 x 122 mm</option>
+            <option value="99x124">기본 명찰 L · 99 x 124 mm</option>
             <option value="100x70">목걸이 가로형 · 100 x 70 mm</option>
             <option value="90x130">목걸이 세로형 · 90 x 130 mm</option>
             <option value="100x150">대형 목걸이 · 100 x 150 mm</option>
@@ -155,13 +156,26 @@
         </label>
         <label class="fld">가로(mm)<input type="number" id="cardW" value="96" style="width:80px"></label>
         <label class="fld">세로(mm)<input type="number" id="cardH" value="122" style="width:80px"></label>
-        <label class="fld">배경 이미지/PDF <span style="font-weight:400;color:#9aa1ad">권장: JPG·PNG·1p PDF</span>
-          <input type="file" id="fileBg" accept=".jpg,.jpeg,.png,.pdf">
+        <label class="fld">앞면 배경 <span style="font-weight:400;color:#9aa1ad">JPG·PNG·1p PDF</span>
+          <input type="file" id="fileBgFront" accept=".jpg,.jpeg,.png,.pdf">
         </label>
-        <button class="btn ghost sm" id="btnClearBg">배경 제거</button>
+        <label class="fld">뒷면 배경 <span style="font-weight:400;color:#9aa1ad">선택 사항</span>
+          <input type="file" id="fileBgBack" accept=".jpg,.jpeg,.png,.pdf">
+        </label>
+        <button class="btn ghost sm" id="btnClearBgFront">앞면 제거</button>
+        <button class="btn ghost sm" id="btnClearBgBack">뒷면 제거</button>
       </div>
       <div class="hint" id="bgSpec" style="margin-bottom:10px"></div>
-      <p class="desc" id="bgStatus">배경을 올리지 않으면 흰 바탕으로 출력됩니다. 행사용 디자인(JPG/PDF)을 올리면 그 위에 글자와 QR이 얹힙니다.</p>
+      <p class="desc" id="bgStatus">앞면 배경 위에 글자·QR이 얹힙니다. 뒷면 배경을 올리면 양면 명찰로 출력됩니다(뒷면은 비워두면 단면).</p>
+    </div>
+
+    <div class="card" style="padding:12px 18px">
+      <div class="row" style="align-items:center">
+        <b style="font-size:13px">편집할 면:</b>
+        <button class="btn sm" id="sideFront">■ 앞면</button>
+        <button class="btn ghost sm" id="sideBack">□ 뒷면</button>
+        <span class="statusline" id="sideHint" style="margin:0">필드와 배경은 면별로 따로 배치됩니다.</span>
+      </div>
     </div>
 
     <div class="design-wrap">
@@ -224,11 +238,14 @@
         <span class="statusline" id="outStatus"></span>
       </div>
       <div class="row" style="margin-top:10px">
-        <label class="fld">A4 여백(mm)<input type="number" id="pageMargin" value="6" style="width:80px"></label>
+        <label class="fld">A4 여백(mm)<input type="number" id="pageMargin" value="3" style="width:80px"></label>
         <label class="fld">명찰 간격(mm)<input type="number" id="cardGap" value="5" style="width:80px"></label>
         <label class="fld">최소 글자 크기(pt)<input type="number" id="minPt" value="9" style="width:80px"></label>
         <label class="fld" style="flex-direction:row;align-items:center;gap:6px;margin-top:14px">
           <input type="checkbox" id="cutMarks" checked> 자르는 선(재단선) 표시
+        </label>
+        <label class="fld" style="flex-direction:row;align-items:center;gap:6px;margin-top:14px">
+          <input type="checkbox" id="backMirror" checked> 뒷면 좌우반전(양면 인쇄용)
         </label>
       </div>
       <div class="layoutinfo" id="layoutInfo"></div>
@@ -297,7 +314,7 @@
       <h2>자주 묻는 점</h2>
       <p class="desc" style="line-height:1.9">
         · 인터넷이 끊겨도 한 번 연 뒤에는 대부분 동작하지만, 처음 열 때는 온라인 상태가 좋습니다.<br>
-        · 한글 폰트는 컴퓨터에 설치된 글꼴(맑은 고딕 등)을 그대로 사용합니다.<br>
+        · 한글 폰트는 무료 웹폰트(OFL)를 인터넷에서 불러옵니다. 한글·영문 모두 지원합니다.<br>
         · 배경 PDF는 첫 페이지를 이미지로 가져옵니다.<br>
         · QR 내용은 명단의 특정 항목(예: 이름 또는 ID)과 연결됩니다.
       </p>
@@ -326,12 +343,15 @@
 const State = {
   columns: [],          // 명단 컬럼명
   rows: [],             // 명단 데이터 [{컬럼:값}]
-  bgDataUrl: null,      // 배경 이미지 dataURL
+  bgFront: null,        // 앞면 배경 dataURL
+  bgBack: null,         // 뒷면 배경 dataURL
   card: { w: 96, h: 122 },
-  fields: [],           // {id,type:'text'|'qr',column,prefix,size,align,weight,color,qrSize,x,y}
+  fields: [],           // {id,type,column,...,side:'front'|'back'}
   selectedField: null,
   previewIndex: 0,
+  designSide: 'front',  // 디자인 편집 중인 면
 };
+function hasBack(){ return !!State.bgBack || State.fields.some(f=>f.side==='back'); }
 const PX_PER_MM = 3.7795275591; // 96dpi
 let fieldSeq = 1;
 
@@ -439,7 +459,7 @@ function mkField(type, column, opt={}){
   return Object.assign({
     id:'f'+(fieldSeq++), type, column:column||'',
     prefix:'', size: type==='qr'?12:16, align:'center', weight:'400',
-    color:'#111111', qrSize:22, maxW:90, font:FONT_FAMILY, x:50, y: type==='qr'?85:50
+    color:'#111111', qrSize:22, maxW:90, font:FONT_FAMILY, side:'front', x:50, y: type==='qr'?85:50
   }, opt);
 }
 function selectField(id){
@@ -447,8 +467,9 @@ function selectField(id){
 }
 function renderFieldList(){
   const wrap=$('#fieldList'); wrap.innerHTML='';
-  if(!State.fields.length){ wrap.innerHTML='<div class="statusline">필드가 없습니다. 아래 버튼으로 추가하세요.</div>'; return; }
-  State.fields.forEach(f=>{
+  const list=State.fields.filter(f=>f.side===State.designSide);
+  if(!list.length){ wrap.innerHTML=`<div class="statusline">${State.designSide==='front'?'앞면':'뒷면'}에 필드가 없습니다. 아래 버튼으로 추가하세요.</div>`; return; }
+  list.forEach(f=>{
     const div=document.createElement('div');
     div.className='it'+(f.id===State.selectedField?' sel':'');
     const tag = f.type==='qr' ? 'QR' : '글자';
@@ -483,34 +504,51 @@ function showProp(){
 });
 $('#btnAddText').addEventListener('click',()=>{
   if(!State.columns.length){ toast('먼저 명단을 준비하세요.'); return; }
-  const f=mkField('text', State.columns[0]); State.fields.push(f); selectField(f.id);
+  const f=mkField('text', State.columns[0], {side:State.designSide}); State.fields.push(f); selectField(f.id);
 });
 $('#btnAddQR').addEventListener('click',()=>{
   if(!State.columns.length){ toast('먼저 명단을 준비하세요.'); return; }
-  const f=mkField('qr', State.columns.find(c=>c.toLowerCase().includes('id'))||State.columns[0]);
+  const f=mkField('qr', State.columns.find(c=>c.toLowerCase().includes('id'))||State.columns[0], {side:State.designSide});
   State.fields.push(f); selectField(f.id);
 });
+/* 면 전환 */
+function setDesignSide(side){
+  State.designSide=side; State.selectedField=null;
+  $('#sideFront').className='btn sm'+(side==='front'?'':' ghost');
+  $('#sideBack').className='btn sm'+(side==='back'?'':' ghost');
+  $('#sideFront').textContent=(side==='front'?'■ 앞면':'□ 앞면');
+  $('#sideBack').textContent=(side==='back'?'■ 뒷면':'□ 뒷면');
+  renderDesign(); showProp(); updateBgSpec();
+}
+$('#sideFront').addEventListener('click',()=>setDesignSide('front'));
+$('#sideBack').addEventListener('click',()=>setDesignSide('back'));
 $('#btnDelField').addEventListener('click',()=>{
   if(!State.selectedField) return;
   State.fields=State.fields.filter(f=>f.id!==State.selectedField);
   State.selectedField=null; renderFieldList(); renderDesign(); showProp();
 });
 
-/* 배경 업로드 */
-$('#fileBg').addEventListener('change', async e=>{
+/* 배경 업로드 (앞/뒤) */
+async function loadBg(file){
+  if(file.type==='application/pdf' || file.name.toLowerCase().endsWith('.pdf')){
+    return await pdfFirstPageToDataUrl(await file.arrayBuffer());
+  }
+  return await fileToDataUrl(file);
+}
+$('#fileBgFront').addEventListener('change', async e=>{
   const f=e.target.files[0]; if(!f) return;
-  $('#bgStatus').textContent='배경 처리 중...';
-  try{
-    if(f.type==='application/pdf' || f.name.toLowerCase().endsWith('.pdf')){
-      State.bgDataUrl = await pdfFirstPageToDataUrl(await f.arrayBuffer());
-    }else{
-      State.bgDataUrl = await fileToDataUrl(f);
-    }
-    $('#bgStatus').textContent='배경이 적용되었습니다: '+f.name;
-    renderDesign();
-  }catch(err){ console.error(err); $('#bgStatus').textContent='배경을 읽지 못했습니다.'; toast('배경 파일 오류'); }
+  $('#bgStatus').textContent='앞면 배경 처리 중...';
+  try{ State.bgFront=await loadBg(f); $('#bgStatus').textContent='앞면 배경 적용: '+f.name; setDesignSide('front'); }
+  catch(err){ console.error(err); $('#bgStatus').textContent='앞면 배경을 읽지 못했습니다.'; toast('배경 파일 오류'); }
 });
-$('#btnClearBg').addEventListener('click',()=>{ State.bgDataUrl=null; $('#fileBg').value=''; $('#bgStatus').textContent='배경을 제거했습니다.'; renderDesign(); });
+$('#fileBgBack').addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  $('#bgStatus').textContent='뒷면 배경 처리 중...';
+  try{ State.bgBack=await loadBg(f); $('#bgStatus').textContent='뒷면 배경 적용: '+f.name+' (양면 출력 활성화)'; setDesignSide('back'); }
+  catch(err){ console.error(err); $('#bgStatus').textContent='뒷면 배경을 읽지 못했습니다.'; toast('배경 파일 오류'); }
+});
+$('#btnClearBgFront').addEventListener('click',()=>{ State.bgFront=null; $('#fileBgFront').value=''; $('#bgStatus').textContent='앞면 배경을 제거했습니다.'; renderDesign(); });
+$('#btnClearBgBack').addEventListener('click',()=>{ State.bgBack=null; $('#fileBgBack').value=''; $('#bgStatus').textContent='뒷면 배경을 제거했습니다.'; renderDesign(); });
 function fileToDataUrl(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
 async function pdfFirstPageToDataUrl(arrbuf){
   const pdf=await pdfjsLib.getDocument({data:arrbuf}).promise;
@@ -558,7 +596,7 @@ function makeQRDataUrl(text, px){
   return url;
 }
 
-/* 무료 상업용(OFL) 웹폰트 목록 — 항목별 개별 선택 가능 */
+/* 무료 상업용(OFL) 웹폰트 목록 — 한글+영문 지원, 항목별 개별 선택 */
 const FONTS = [
   {name:'본고딕 (Noto Sans KR)',     css:"'Noto Sans KR', sans-serif"},
   {name:'나눔고딕',                  css:"'Nanum Gothic', sans-serif"},
@@ -596,13 +634,15 @@ function fitFontPx(text, weight, basePx, maxWidthPx, minPx, family){
 }
 
 /* 카드 DOM 생성 (미리보기/캡처 공용) */
-function buildCard(row, pxPerMm, editable){
+function buildCard(row, pxPerMm, editable, side){
+  side = side || 'front';
   const card=document.createElement('div');
   card.className='nt-card';
   card.style.width=(State.card.w*pxPerMm)+'px';
   card.style.height=(State.card.h*pxPerMm)+'px';
-  if(State.bgDataUrl) card.style.backgroundImage=`url(${State.bgDataUrl})`;
-  State.fields.forEach(f=>{
+  const bg = side==='back'?State.bgBack:State.bgFront;
+  if(bg) card.style.backgroundImage=`url(${bg})`;
+  State.fields.filter(f=>f.side===side).forEach(f=>{
     const el=document.createElement('div');
     el.className='nt-field '+(f.type==='qr'?'qr':'text')+(editable&&f.id===State.selectedField?' sel':'');
     el.style.left=f.x+'%'; el.style.top=f.y+'%';
@@ -654,7 +694,7 @@ function renderDesign(){
   const naturalW=State.card.w*PX_PER_MM;
   const scale=Math.min(1, targetW/naturalW);
   const pxPerMm=PX_PER_MM*scale;
-  const card=buildCard(row, pxPerMm, true);
+  const card=buildCard(row, pxPerMm, true, State.designSide);
   stage.appendChild(card);
   renderFieldList();
 }
@@ -712,7 +752,7 @@ function checkThen(proceedFn){
 /* A4 배치 정보 */
 function computeLayout(){
   const cw=State.card.w, ch=State.card.h;
-  const margin=+$('#pageMargin').value||6, gap=+$('#cardGap').value||5;
+  const margin=+$('#pageMargin').value||3, gap=+$('#cardGap').value||5;
   const cols=Math.max(1,Math.floor((210-2*margin+gap)/(cw+gap)));
   const rowsPP=Math.max(1,Math.floor((297-2*margin+gap)/(ch+gap)));
   return { cols, rowsPP, perPage:cols*rowsPP };
@@ -726,12 +766,12 @@ function updateLayoutInfo(){
     (n?` · 참가자 ${n}명 → A4 ${pages}장 필요`:` · (명단을 올리면 필요한 장수를 계산합니다)`);
 }
 ['pageMargin','cardGap','minPt'].forEach(id=>$('#'+id).addEventListener('input',()=>{ updateLayoutInfo(); renderA4Page(); }));
-async function captureCard(row, scale=3){
+async function captureCard(row, scale=3, side='front'){
   if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(e){} }
   const holder=document.createElement('div');
   holder.style.position='fixed'; holder.style.left='-99999px'; holder.style.top='0';
   document.body.appendChild(holder);
-  const card=buildCard(row, PX_PER_MM, false);
+  const card=buildCard(row, PX_PER_MM, false, side);
   holder.appendChild(card);
   const canvas=await html2canvas(card,{scale,backgroundColor:'#ffffff',useCORS:true,logging:false});
   document.body.removeChild(holder);
@@ -773,32 +813,37 @@ function renderA4Page(){
   }
   const cw=State.card.w, ch=State.card.h, gap=+$('#cardGap').value||5;
   const { cols, rowsPP, perPage }=computeLayout();
-  const totalPages=Math.ceil(State.rows.length/perPage);
-  a4Page=Math.max(0, Math.min(a4Page, totalPages-1));
+  const groups=Math.ceil(State.rows.length/perPage);
+  const dbl=hasBack(), mirror=$('#backMirror').checked;
+  const sheets=[];
+  for(let g=0; g<groups; g++){ sheets.push({g,side:'front'}); if(dbl) sheets.push({g,side:'back'}); }
+  a4Page=Math.max(0, Math.min(a4Page, sheets.length-1));
+  const cur=sheets[a4Page];
   const blockW=cols*cw+(cols-1)*gap, blockH=rowsPP*ch+(rowsPP-1)*gap;
   const startX=Math.max(0,(210-blockW)/2), startY=Math.max(0,(297-blockH)/2);
   const targetW=Math.min(430, ($('#a4Stage').clientWidth-40)||400);
   const ppm=targetW/210;
   sheet.style.cssText=`position:relative;width:${210*ppm}px;height:${297*ppm}px;background:#fff;box-shadow:0 4px 22px rgba(0,0,0,.2);flex:0 0 auto`;
   const cut=$('#cutMarks').checked;
-  const startIdx=a4Page*perPage;
-  for(let p=0;p<perPage;p++){
-    const idx=startIdx+p; if(idx>=State.rows.length) break;
-    const r=Math.floor(p/cols), c=p%cols;
+  const base=cur.g*perPage, count=Math.min(perPage, State.rows.length-base);
+  for(let p=0;p<count;p++){
+    const r=Math.floor(p/cols), c0=p%cols;
+    const c=(cur.side==='back'&&mirror)?(cols-1-c0):c0;
     const x=startX+c*(cw+gap), y=startY+r*(ch+gap);
     const wrap=document.createElement('div');
     wrap.style.cssText=`position:absolute;left:${x*ppm}px;top:${y*ppm}px;width:${cw*ppm}px;height:${ch*ppm}px;`+
       (cut?'outline:0.5px dashed #9aa1ad;outline-offset:0;':'');
-    const card=buildCard(State.rows[idx], ppm, false);
+    const card=buildCard(State.rows[base+p], ppm, false, cur.side);
     card.style.boxShadow='none';
     wrap.appendChild(card); sheet.appendChild(wrap);
   }
-  const onThisPage=Math.min(perPage, State.rows.length-startIdx);
-  $('#a4PageLabel').textContent=`${a4Page+1} / ${totalPages} 페이지 · 이 장에 ${onThisPage}개 (A4 한 장당 최대 ${perPage}개)`;
+  const sideLabel = cur.side==='front'?'앞면':'뒷면';
+  $('#a4PageLabel').textContent=`${a4Page+1} / ${sheets.length} 시트${dbl?(' · '+sideLabel):''} · 그룹 ${cur.g+1} · 이 면 ${count}개`;
 }
 $('#a4Prev').addEventListener('click',()=>{ a4Page--; renderA4Page(); });
 $('#a4Next').addEventListener('click',()=>{ a4Page++; renderA4Page(); });
 $('#cutMarks').addEventListener('change', renderA4Page);
+$('#backMirror').addEventListener('change', renderA4Page);
 
 /* 일괄 PDF: A4에 배치 */
 $('#btnBatchPdf').addEventListener('click', ()=> checkThen(async ()=>{
@@ -810,25 +855,41 @@ $('#btnBatchPdf').addEventListener('click', ()=> checkThen(async ()=>{
     const cw=State.card.w, ch=State.card.h;
     const { cols, rowsPP, perPage }=computeLayout();
     const cut=$('#cutMarks').checked;
+    const dbl=hasBack(), mirror=$('#backMirror').checked;
     // A4(210x297) 가운데 정렬
     const blockW=cols*cw+(cols-1)*gap, blockH=rowsPP*ch+(rowsPP-1)*gap;
     const startX=Math.max(0,(210-blockW)/2), startY=Math.max(0,(297-blockH)/2);
     const drawCut=()=>{ if(!cut) return; pdf.setDrawColor(180); pdf.setLineWidth(0.1);
       for(let rr=0;rr<rowsPP;rr++)for(let cc=0;cc<cols;cc++){
         pdf.rect(startX+cc*(cw+gap), startY+rr*(ch+gap), cw, ch); } };
-    drawCut();
-    for(let i=0;i<State.rows.length;i++){
-      const posOnPage=i%perPage;
-      if(i>0 && posOnPage===0){ pdf.addPage(); drawCut(); }
-      const r=Math.floor(posOnPage/cols), c=posOnPage%cols;
-      const x=startX+c*(cw+gap), y=startY+r*(ch+gap);
-      const canvas=await captureCard(State.rows[i], 3);
-      pdf.addImage(canvas.toDataURL('image/png'),'PNG',x,y,cw,ch);
-      $('#outStatus').textContent=`처리 중... ${i+1}/${State.rows.length}`;
+    const N=State.rows.length, groups=Math.ceil(N/perPage);
+    let first=true;
+    for(let g=0; g<groups; g++){
+      const base=g*perPage, count=Math.min(perPage, N-base);
+      // 앞면 페이지
+      if(!first) pdf.addPage(); first=false; drawCut();
+      for(let p=0;p<count;p++){
+        const r=Math.floor(p/cols), c=p%cols;
+        const x=startX+c*(cw+gap), y=startY+r*(ch+gap);
+        const cv=await captureCard(State.rows[base+p], 3, 'front');
+        pdf.addImage(cv.toDataURL('image/png'),'PNG',x,y,cw,ch);
+        $('#outStatus').textContent=`앞면 처리 중... ${base+p+1}/${N}`;
+      }
+      // 뒷면 페이지 (양면일 때만)
+      if(dbl){
+        pdf.addPage(); drawCut();
+        for(let p=0;p<count;p++){
+          const r=Math.floor(p/cols), c0=p%cols, c=mirror?(cols-1-c0):c0;
+          const x=startX+c*(cw+gap), y=startY+r*(ch+gap);
+          const cv=await captureCard(State.rows[base+p], 3, 'back');
+          pdf.addImage(cv.toDataURL('image/png'),'PNG',x,y,cw,ch);
+          $('#outStatus').textContent=`뒷면 처리 중... ${base+p+1}/${N}`;
+        }
+      }
     }
-    const pages=Math.ceil(State.rows.length/perPage);
     pdf.save('명찰_일괄.pdf');
-    $('#outStatus').textContent=`완료: ${State.rows.length}명 · A4 한 장당 ${perPage}개 · 총 ${pages}장`;
+    const sheets=groups*(dbl?2:1);
+    $('#outStatus').textContent=`완료: ${N}명 · A4 한 장당 ${perPage}개 · ${dbl?'양면':'단면'} · 총 ${sheets}장`;
   }catch(e){ console.error(e); toast('PDF 생성 오류'); }
   setBusy('#btnBatchPdf', false, '전체 일괄 PDF (A4)');
 }));
@@ -840,14 +901,20 @@ $('#btnEachPdf').addEventListener('click', ()=> checkThen(async ()=>{
     const { jsPDF }=window.jspdf;
     const cw=State.card.w, ch=State.card.h;
     const pdf=new jsPDF({unit:'mm',format:[cw,ch]});
+    const dbl=hasBack(); let first=true;
     for(let i=0;i<State.rows.length;i++){
-      if(i>0) pdf.addPage([cw,ch]);
-      const canvas=await captureCard(State.rows[i], 3);
-      pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,cw,ch);
+      if(!first) pdf.addPage([cw,ch]); first=false;
+      const cf=await captureCard(State.rows[i], 3, 'front');
+      pdf.addImage(cf.toDataURL('image/png'),'PNG',0,0,cw,ch);
+      if(dbl){
+        pdf.addPage([cw,ch]);
+        const cb=await captureCard(State.rows[i], 3, 'back');
+        pdf.addImage(cb.toDataURL('image/png'),'PNG',0,0,cw,ch);
+      }
       $('#outStatus').textContent=`처리 중... ${i+1}/${State.rows.length}`;
     }
     pdf.save('명찰_개별.pdf');
-    $('#outStatus').textContent=`완료: 개별 ${State.rows.length}장`;
+    $('#outStatus').textContent=`완료: 개별 ${State.rows.length}명${dbl?' (양면)':''}`;
   }catch(e){ console.error(e); toast('PDF 생성 오류'); }
   setBusy('#btnEachPdf', false, '개별 PDF (각 1장)');
 }));
@@ -856,14 +923,23 @@ $('#btnEachPdf').addEventListener('click', ()=> checkThen(async ()=>{
 $('#btnPrint').addEventListener('click', ()=> checkThen(async ()=>{
   setBusy('#btnPrint', true, '인쇄 준비 중');
   const w=window.open('','_blank');
-  w.document.write('<html><head><title>명찰 인쇄</title><style>@page{margin:10mm}body{margin:0;display:flex;flex-wrap:wrap;gap:5mm;font-family:sans-serif}img{display:block}</style></head><body></body></html>');
-  for(let i=0;i<State.rows.length;i++){
-    const canvas=await captureCard(State.rows[i], 3);
-    const img=w.document.createElement('img');
-    img.src=canvas.toDataURL('image/png');
-    img.style.width=State.card.w+'mm'; img.style.height=State.card.h+'mm';
-    w.document.body.appendChild(img);
-  }
+  w.document.write('<html><head><title>명찰 인쇄</title><style>@page{margin:10mm}body{margin:0;font-family:sans-serif}.sheet{display:flex;flex-wrap:wrap;gap:5mm}.lbl{font-size:11px;color:#888;margin:6px 0;width:100%}img{display:block}.pb{page-break-before:always}</style></head><body></body></html>');
+  const dbl=hasBack();
+  const addImgs=async (side, cls)=>{
+    const box=w.document.createElement('div'); box.className='sheet '+(cls||'');
+    if(dbl){ const l=w.document.createElement('div'); l.className='lbl'; l.textContent=(side==='front'?'■ 앞면':'■ 뒷면'); box.appendChild(l); }
+    for(let i=0;i<State.rows.length;i++){
+      const canvas=await captureCard(State.rows[i], 3, side);
+      const img=w.document.createElement('img');
+      img.src=canvas.toDataURL('image/png');
+      img.style.width=State.card.w+'mm'; img.style.height=State.card.h+'mm';
+      box.appendChild(img);
+      $('#outStatus').textContent=`인쇄 준비... ${side==='front'?'앞':'뒤'} ${i+1}/${State.rows.length}`;
+    }
+    w.document.body.appendChild(box);
+  };
+  await addImgs('front');
+  if(dbl) await addImgs('back','pb');
   setBusy('#btnPrint', false, '웹에서 바로 인쇄');
   setTimeout(()=>{ w.focus(); w.print(); }, 400);
 }));
@@ -928,7 +1004,7 @@ $('#btnCopySql').addEventListener('click',()=>{ navigator.clipboard.writeText($(
 /* ============================================================
    초기화
 ============================================================ */
-populateFontSelect();
+populateFontSelect(); setDesignSide('front');
 loadSbConfig(); renderSql(); renderTable(); updateBgSpec(); updateLayoutInfo();
 $('#dataCount').textContent='명단을 올리거나 샘플을 넣어 시작하세요.';
 </script>
