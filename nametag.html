@@ -220,6 +220,13 @@
             </label>
             <label class="fld">색상<input type="color" id="pColor" class="swatch" value="#111111"></label>
           </div>
+          <label class="fld" id="pBoxWrap" style="flex-direction:row;align-items:center;gap:6px">
+            <input type="checkbox" id="pBox"> 영역(박스) 안에 자동 맞춤
+          </label>
+          <div class="grid2" id="pBoxSize" style="display:none">
+            <label class="fld">영역 가로(%)<input type="number" id="pBoxW" value="70"></label>
+            <label class="fld">영역 세로(%)<input type="number" id="pBoxH" value="18"></label>
+          </div>
           <label class="fld" id="pMaxWWrap">최대 폭(% · 넘으면 자동 축소)<input type="number" id="pMaxW" value="90"></label>
           <label class="fld" id="pQrSizeWrap" style="display:none">QR 크기(mm)<input type="number" id="pQrSize" value="22"></label>
           <p class="statusline">카드 위에서 필드를 끌어 위치를 옮길 수 있습니다.</p>
@@ -474,7 +481,8 @@ function mkField(type, column, opt={}){
   return Object.assign({
     id:'f'+(fieldSeq++), type, column:column||'',
     prefix:'', size: type==='qr'?12:16, align:'center', weight:'400',
-    color:'#111111', qrSize:22, maxW:90, font:FONT_FAMILY, side:'front', x:50, y: type==='qr'?85:50
+    color:'#111111', qrSize:22, maxW:90, font:FONT_FAMILY, side:'front',
+    box:false, boxW:70, boxH:18, x:50, y: type==='qr'?85:50
   }, opt);
 }
 function selectField(id){
@@ -503,17 +511,25 @@ function showProp(){
   $('#pPrefix').value=f.prefix; $('#pSize').value=f.size; $('#pAlign').value=f.align;
   $('#pWeight').value=f.weight; $('#pColor').value=f.color; $('#pQrSize').value=f.qrSize;
   $('#pMaxW').value=f.maxW; $('#pFont').value=f.font||FONT_FAMILY;
+  $('#pBox').checked=!!f.box; $('#pBoxW').value=f.boxW||70; $('#pBoxH').value=f.boxH||18;
+  const isText = f.type!=='qr';
   $('#pQrSizeWrap').style.display = f.type==='qr'?'flex':'none';
-  $('#pMaxWWrap').style.display = f.type==='qr'?'none':'flex';
-  $('#pFontWrap').style.display = f.type==='qr'?'none':'flex';
+  $('#pFontWrap').style.display = isText?'flex':'none';
   $('#pPrefixWrap').style.display = f.type==='qr'?'none':'flex';
+  $('#pBoxWrap').style.display = isText?'flex':'none';
+  $('#pBoxSize').style.display = (isText && f.box)?'grid':'none';
+  $('#pMaxWWrap').style.display = (isText && !f.box)?'flex':'none';
 }
-['pColumn','pPrefix','pSize','pAlign','pWeight','pColor','pQrSize','pMaxW','pFont'].forEach(id=>{
+['pColumn','pPrefix','pSize','pAlign','pWeight','pColor','pQrSize','pMaxW','pFont','pBox','pBoxW','pBoxH'].forEach(id=>{
   $('#'+id).addEventListener('input',()=>{
     const f=State.fields.find(x=>x.id===State.selectedField); if(!f) return;
     f.column=$('#pColumn').value; f.prefix=$('#pPrefix').value; f.size=+$('#pSize').value;
     f.align=$('#pAlign').value; f.weight=$('#pWeight').value; f.color=$('#pColor').value;
     f.qrSize=+$('#pQrSize').value; f.maxW=+$('#pMaxW').value||90; f.font=$('#pFont').value;
+    f.box=$('#pBox').checked; f.boxW=+$('#pBoxW').value||70; f.boxH=+$('#pBoxH').value||18;
+    const isText=f.type!=='qr';
+    $('#pBoxSize').style.display=(isText && f.box)?'grid':'none';
+    $('#pMaxWWrap').style.display=(isText && !f.box)?'flex':'none';
     renderFieldList(); renderDesign();
   });
 });
@@ -669,15 +685,41 @@ function buildCard(row, pxPerMm, editable, side){
       el.appendChild(img);
     }else{
       const fam=f.font||FONT_FAMILY;
-      el.style.fontFamily=fam+', '+FALLBACK_FAMILY;
-      el.style.fontWeight=f.weight; el.style.color=f.color; el.style.textAlign=f.align;
+      el.style.color=f.color;
       const val=row?esc(row[f.column]):('['+(f.column||'항목')+']');
       const text=(f.prefix||'')+val;
-      const basePx=f.size*PT2PX(pxPerMm);
-      const maxWpx=State.card.w*pxPerMm*((f.maxW||90)/100);
       const minPx=getMinPt()*PT2PX(pxPerMm);
-      el.style.fontSize=fitFontPx(text, f.weight, basePx, maxWpx, minPx, fam).px+'px';
-      el.textContent=text;
+      const just = f.align==='left'?'flex-start':f.align==='right'?'flex-end':'center';
+      if(f.box){
+        // 영역(박스) 안에 가운데 정렬 + 자동 축소
+        const boxWpx=State.card.w*pxPerMm*((f.boxW||70)/100);
+        const boxHpx=State.card.h*pxPerMm*((f.boxH||18)/100);
+        el.style.width=boxWpx+'px'; el.style.height=boxHpx+'px';
+        el.style.whiteSpace='normal';
+        if(editable) el.style.outline='1px dashed rgba(47,109,246,.6)';
+        let target=f.size*PT2PX(pxPerMm);
+        target=Math.min(target, boxHpx/1.25);          // 세로 넘침 방지
+        const fit=fitFontPx(text, f.weight, target, boxWpx*0.94, minPx, fam);
+        const clip=document.createElement('div');
+        clip.style.cssText=`width:100%;height:100%;overflow:hidden;display:flex;align-items:center;justify-content:${just}`;
+        const span=document.createElement('span');
+        span.style.fontFamily=fam+', '+FALLBACK_FAMILY; span.style.fontWeight=f.weight;
+        span.style.fontSize=fit.px+'px'; span.style.lineHeight='1.1'; span.style.textAlign=f.align;
+        span.style.whiteSpace='nowrap'; span.textContent=text;
+        clip.appendChild(span); el.appendChild(clip);
+        if(editable && f.id===State.selectedField){
+          const h=document.createElement('div');
+          h.style.cssText='position:absolute;right:-6px;bottom:-6px;width:13px;height:13px;background:var(--brand);border:2px solid #fff;border-radius:50%;cursor:nwse-resize;z-index:5';
+          el.appendChild(h); makeResizable(h,f,card);
+        }
+      }else{
+        el.style.fontFamily=fam+', '+FALLBACK_FAMILY;
+        el.style.fontWeight=f.weight; el.style.textAlign=f.align; el.style.whiteSpace='pre';
+        const basePx=f.size*PT2PX(pxPerMm);
+        const maxWpx=State.card.w*pxPerMm*((f.maxW||90)/100);
+        el.style.fontSize=fitFontPx(text, f.weight, basePx, maxWpx, minPx, fam).px+'px';
+        el.textContent=text;
+      }
     }
     if(editable) makeDraggable(el,f,card);
     card.appendChild(el);
@@ -695,6 +737,25 @@ function makeDraggable(el,f,card){
       let y=((e.clientY-rect.top)/rect.height)*100;
       f.x=Math.max(0,Math.min(100,x)); f.y=Math.max(0,Math.min(100,y));
       el.style.left=f.x+'%'; el.style.top=f.y+'%';
+    };
+    const up=()=>{ window.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); };
+    window.addEventListener('pointermove',move); window.addEventListener('pointerup',up);
+  });
+}
+
+/* 박스 크기 조절(모서리 핸들) */
+function makeResizable(handle,f,card){
+  handle.addEventListener('pointerdown',ev=>{
+    ev.preventDefault(); ev.stopPropagation();
+    const rect=card.getBoundingClientRect();
+    const cx=rect.left+rect.width*(f.x/100), cy=rect.top+rect.height*(f.y/100);
+    const move=e=>{
+      const halfW=Math.abs(e.clientX-cx), halfH=Math.abs(e.clientY-cy);
+      f.boxW=Math.max(8, Math.min(100, halfW*2/rect.width*100));
+      f.boxH=Math.max(5, Math.min(100, halfH*2/rect.height*100));
+      if($('#pBoxW')) $('#pBoxW').value=Math.round(f.boxW);
+      if($('#pBoxH')) $('#pBoxH').value=Math.round(f.boxH);
+      renderDesign();
     };
     const up=()=>{ window.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); };
     window.addEventListener('pointermove',move); window.addEventListener('pointerup',up);
@@ -738,8 +799,14 @@ function findOverflows(){
       if(f.type!=='text') return;
       const text=(f.prefix||'')+esc(row[f.column]);
       if(!text.trim()) return;
-      const basePx=f.size*PT2PX(PX_PER_MM);
-      const maxWpx=State.card.w*PX_PER_MM*((f.maxW||90)/100);
+      let basePx=f.size*PT2PX(PX_PER_MM), maxWpx;
+      if(f.box){
+        const boxWpx=State.card.w*PX_PER_MM*((f.boxW||70)/100);
+        const boxHpx=State.card.h*PX_PER_MM*((f.boxH||18)/100);
+        basePx=Math.min(basePx, boxHpx/1.25); maxWpx=boxWpx*0.94;
+      }else{
+        maxWpx=State.card.w*PX_PER_MM*((f.maxW||90)/100);
+      }
       const fit=fitFontPx(text, f.weight, basePx, maxWpx, minPx, f.font||FONT_FAMILY);
       if(fit.overflow) out.push({ index:i, name:esc(row[State.columns[0]])||('행 '+(i+1)), column:f.column, value:text });
     });
